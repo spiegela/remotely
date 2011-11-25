@@ -76,11 +76,21 @@ module Remotely
     def basic_auth(user=nil, password=nil)
       user and password and @basic_auth = [user, password] or @basic_auth
     end
+    
+    # Set the default parameters to use when making
+    # requests.
+    #
+    # @param [Hash] params Parameter Hash
+    #
+    def default_params(default_params=nil)
+      default_params and @default_params = default_params or @default_params or {}
+    end
 
     # Clear all registered apps
     #
     def reset!
       @apps = {}
+      @default_params = {}
       @basic_auth = nil
     end
   end

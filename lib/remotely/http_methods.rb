@@ -1,3 +1,4 @@
+require 'pp'
 module Remotely
   module HTTPMethods
     # HTTP status codes that are represent successful requests
@@ -78,7 +79,10 @@ module Remotely
 
       before_request(uri, :get, options)
 
-      response = remotely_connection.get { |req| req.url(uri, options) }
+      response = remotely_connection.get do |req|
+        req.url uri
+        req.params = Remotely.default_params.merge(options)
+      end
       parse_response(raise_if_html(response), klass, parent)
     end
 
@@ -102,7 +106,13 @@ module Remotely
       body   = options.delete(:body) || Yajl::Encoder.encode(options)
 
       before_request(uri, :post, body)
-      raise_if_html(remotely_connection.post(uri, body))
+      raise_if_html(
+        remotely_connection.post do |req|
+          req.url uri
+          req.params = Remotely.default_params
+          req.body   = body
+        end
+      )
     end
 
     # PUT request.
@@ -118,7 +128,13 @@ module Remotely
       body = options.delete(:body) || Yajl::Encoder.encode(options)
 
       before_request(uri, :put, body)
-      raise_if_html(remotely_connection.put(uri, body))
+      raise_if_html(
+        remotely_connection.put do |req|
+          req.url uri
+          req.params = Remotely.default_params
+          req.body   = body
+        end
+      )
     end
 
     # DELETE request.
@@ -131,7 +147,12 @@ module Remotely
     def http_delete(uri)
       uri = expand(uri)
       before_request(uri, :delete)
-      response = raise_if_html(remotely_connection.delete(uri))
+      response = raise_if_html(
+        remotely_connection.delete do |req|
+          req.url uri
+          req.params = Remotely.default_params
+        end
+      )
       SUCCESS_STATUSES.include?(response.status)
     end
 
